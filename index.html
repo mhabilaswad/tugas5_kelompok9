@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Film</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #4caf50;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      .loading {
+        text-align: center;
+        font-size: 20px;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Daftar Film</h1>
+      <div class="loading" id="loading">Loading...</div>
+
+      <!-- Form untuk Mengedit Film -->
+      <h2>Edit Film</h2>
+      <form id="editFilmForm" style="display: none">
+        <input type="text" id="editNamaFilm" placeholder="Nama Film" required />
+        <input type="text" id="editGenre" placeholder="Genre" required />
+        <input type="number" id="editUsiaMinimal" placeholder="Usia Minimal" required />
+        <input type="hidden" id="editFilmId" />
+        <button type="submit">Perbarui Film</button>
+      </form>
+
+      <table id="filmTable" style="display: none">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nama Film</th>
+            <th>Genre</th>
+            <th>Usia Minimal</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script>
+      // Fungsi untuk Fetch Data Film
+      async function fetchFilms() {
+        try {
+          const response = await fetch('http://localhost:3333/films')
+          const data = await response.json()
+
+          // Hide loading message
+          document.getElementById('loading').style.display = 'none'
+
+          // Show the table
+          document.getElementById('filmTable').style.display = 'block'
+
+          const tableBody = document.querySelector('#filmTable tbody')
+          tableBody.innerHTML = ''
+
+          data.data.forEach((film) => {
+            const row = document.createElement('tr')
+            row.innerHTML = `
+        <td>${film.id}</td>
+        <td>${film.namaFilm}</td>
+        <td>${film.genre}</td>
+        <td>${film.usiaMinimal}</td>
+        <td>
+          <button onclick="editFilm(${film.id})">Edit</button>
+          <button onclick="deleteFilm(${film.id})">Delete</button>
+        </td>
+      `
+            tableBody.appendChild(row)
+          })
+        } catch (error) {
+          document.getElementById('loading').textContent = 'Failed to load films'
+          console.error('Error fetching films:', error)
+        }
+      }
+
+      // Fungsi untuk Mengedit Film
+      async function editFilm(id) {
+        const response = await fetch(http://localhost:3333/films/${id})
+        const film = await response.json()
+
+        document.getElementById('editFilmId').value = film.id
+        document.getElementById('editNamaFilm').value = film.namaFilm
+        document.getElementById('editGenre').value = film.genre
+        document.getElementById('editUsiaMinimal').value = film.usiaMinimal
+
+        document.getElementById('editFilmForm').style.display = 'block'
+      }
+
+      // Fungsi untuk Menyimpan Update Film
+      async function updateFilm(event) {
+        event.preventDefault()
+        const id = document.getElementById('editFilmId').value
+        const namaFilm = document.getElementById('editNamaFilm').value
+        const genre = document.getElementById('editGenre').value
+        const usiaMinimal = document.getElementById('editUsiaMinimal').value
+
+        const response = await fetch(http://localhost:3333/films/${id}, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nama_film: namaFilm, genre, usia_minimal: usiaMinimal }),
+        })
+
+        if (response.ok) {
+          fetchFilms() // Refresh the table after updating
+          document.getElementById('editFilmForm').style.display = 'none'
+        } else {
+          alert('Gagal memperbarui film')
+        }
+      }
+
+      // Fungsi untuk Menghapus Film
+      async function deleteFilm(id) {
+        const response = await fetch(http://localhost:3333/films/${id}, {
+          method: 'DELETE',
+        })
+
+        if (response.ok) {
+          fetchFilms() // Refresh the table after deleting
+        } else {
+          alert('Gagal menghapus film')
+        }
+      }
+
+      // Menambahkan Event Listener untuk Form Submit (Dihapus karena tidak ada form tambah film)
+      document.getElementById('editFilmForm').addEventListener('submit', updateFilm)
+
+      // Fetch film saat halaman dimuat
+      window.onload = fetchFilms
+    </script>
+  </body>
+</html>
